@@ -1,24 +1,54 @@
 package org.soul.autoheal;
+import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.util.InputUtil;
+import org.lwjgl.glfw.GLFW;
 
-import net.fabricmc.api.ModInitializer;
+import java.util.Timer;
+import java.util.TimerTask;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-public class AutoHeal implements ModInitializer {
-	public static final String MOD_ID = "autoheal";
-
-	// This logger is used to write text to the console and the log file.
-	// It is considered best practice to use your mod id as the logger's name.
-	// That way, it's clear which mod wrote info, warnings, and errors.
-	public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
+public class AutoHeal implements ClientModInitializer {
+	private static final int HEAL_INTERVAL = 65000; // 65 секунд
+    private KeyBinding healKeyBind;
 
 	@Override
-	public void onInitialize() {
-		// This code runs as soon as Minecraft is in a mod-load-ready state.
-		// However, some things (like resources) may still be uninitialized.
-		// Proceed with mild caution.
+	public void onInitializeClient() {
+		// Регистрируем обработчик события тика клиента
+		ClientTickEvents.START_CLIENT_TICK.register(client -> {
+			if (healKeyBind.wasPressed()) {
+				executeHealCommand();
+			}
+		});
 
-		LOGGER.info("Hello Fabric world!");
+		// Создаем и регистрируем привязку клавиши
+		healKeyBind = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+				"key.autoheal.heal", // Идентификатор привязки
+				InputUtil.Type.KEYSYM,
+				GLFW.GLFW_KEY_H, // Клавиша "H"
+				"category.autoheal.general" // Категория в настройках
+		));
+
+		// Запускаем таймер для автоматического выполнения команды
+		startHealTimer();
+	}
+
+	private void startHealTimer() {
+        Timer healTimer = new Timer();
+		healTimer.scheduleAtFixedRate(new TimerTask() {
+			@Override
+			public void run() {
+				executeHealCommand();
+			}
+		}, HEAL_INTERVAL, HEAL_INTERVAL);
+	}
+
+	private void executeHealCommand() {
+		MinecraftClient client = MinecraftClient.getInstance();
+		if (client.player != null) {
+			client.player.sendChatMessage("/heal");
+		}
 	}
 }
