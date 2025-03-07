@@ -1,5 +1,5 @@
 package org.soul.autoheal;
-import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.MinecraftClient;
@@ -10,12 +10,12 @@ import org.lwjgl.glfw.GLFW;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class AutoHeal implements ClientModInitializer {
+public class AutoHeal implements ModInitializer {
 	private static final int HEAL_INTERVAL = 65000; // 65 секунд
     private KeyBinding healKeyBind;
 
 	@Override
-	public void onInitializeClient() {
+	public void onInitialize() {
 		// Регистрируем обработчик события тика клиента
 		ClientTickEvents.START_CLIENT_TICK.register(client -> {
 			if (healKeyBind.wasPressed()) {
